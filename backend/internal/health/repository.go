@@ -1,4 +1,4 @@
-package repository
+package health
 
 import (
 	"context"
@@ -10,7 +10,7 @@ type Repository struct{
 	db *database.Database
 }
 
-func New(db *database.Database) *Repository{
+func NewRepository(db *database.Database) *Repository{
 	return &Repository{
 		db: db,
 	}

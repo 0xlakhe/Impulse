@@ -3,14 +3,13 @@ package health
 import (
 	"context"
 
-	"github.com/0xlakhe/Impluse/internal/health/repository"
 )
 
 type Service struct{
-	repository *repository.Repository
+	repository *Repository
 }
 
-func NewService(repository *repository.Repository,) *Service{
+func NewService(repository *Repository,) *Service{
 	return &Service{
 		repository: repository,
 	}

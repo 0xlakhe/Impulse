@@ -1,9 +1,6 @@
-package health
+package user
 
-import (
-	"github.com/0xlakhe/Impluse/internal/app"
-)
-
+import "github.com/0xlakhe/Impluse/internal/app"
 
 type Module struct{
 	Handler *Handler
