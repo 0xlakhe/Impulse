@@ -25,5 +25,7 @@ func New(application *app.App) http.Handler{
 	mux.Handle("GET /api/v1/products",authModule.Middleware.Authenticate(http.HandlerFunc(productModule.Handler.List)))
 	mux.Handle("POST /api/v1/sellers/{sellerId}/conversations", authModule.Middleware.Authenticate(http.HandlerFunc(conversationModule.Handler.CreateOrGet)))
 	// mux.HandleFunc("GET /api/v1/products",productModule.Handler.List)
+	mux.Handle("POST /api/v1/conversations/{conversationId}/messages",authModule.Middleware.Authenticate(http.HandlerFunc(conversationModule.Handler.SendMessage)))
+	mux.Handle("GET /api/v1/conversations/{conversationId}/messages",authModule.Middleware.Authenticate(http.HandlerFunc(conversationModule.Handler.GetMessages)))
 	return mux
 }
