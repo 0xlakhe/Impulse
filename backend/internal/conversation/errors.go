@@ -8,4 +8,6 @@ var(
 	ErrBadRequest=errors.New("invalid request body")
 	ErrConversationNotFound=errors.New("conversation not found")
 	ErrEmptyMessage=errors.New("message cannot be empty")
+	ErrProductNotOwnedBySeller=errors.New("product does not belong to seller")
+	ErrProductNotFound=errors.New("product not found")
 )

@@ -56,3 +56,39 @@ func (r *Repository) List(ctx context.Context,)([]ProductResponse,error){
 	}
 	return products,nil
 }
+
+func (r *Repository) FindByID(ctx context.Context,productID string)(*Product,error){
+	query:=`
+		SELECT
+			id,
+			seller_id,
+			name,
+			description,
+			price,
+			image_url,
+			category,
+			is_active,
+			created_at,
+			updated_at
+		FROM products
+		WHERE id=$1
+	`	
+	var product Product
+
+	err:=r.db.Pool.QueryRow(ctx,query,productID).Scan(
+		&product.ID,
+		&product.SellerID,
+		&product.Name,
+		&product.Description,
+		&product.Price,
+		&product.ImageURL,
+		&product.Category,
+		&product.IsActive,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+	)
+	if err!=nil{
+		return nil,err
+	}
+	return &product,nil
+}

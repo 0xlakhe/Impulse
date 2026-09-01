@@ -31,13 +31,13 @@ func (h *Handler) CreateOrGet(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	
-	// var req CreateConversationRequest
+	var req CreateConversationRequest
 
-	// if err:=json.NewDecoder(r.Body).Decode(&req); err!=nil{
-	// 	httpx.Error(w,http.StatusBadRequest,ErrBadRequest.Error())
-	// 	return
-	// }
-	conversaton,err:=h.service.CreateOrGet(r.Context(),userID,sellerID)
+	if err:=json.NewDecoder(r.Body).Decode(&req); err!=nil{
+		httpx.Error(w,http.StatusBadRequest,ErrBadRequest.Error())
+		return
+	}
+	conversaton,err:=h.service.CreateOrGet(r.Context(),userID,sellerID,*req.ProductID)
 	if err!=nil{
 		httpx.Error(w,http.StatusInternalServerError,err.Error())
 		return
@@ -102,6 +102,7 @@ func (h *Handler) GetMessages(w http.ResponseWriter, r *http.Request){
 	
 	for _,message:=range messages{
 		response=append(response, toMessageResponse(message))
+		httpx.JSON(w,http.StatusOK,response,)
 	}
 	httpx.JSON(w,http.StatusOK,response)
 }

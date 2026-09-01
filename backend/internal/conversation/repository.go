@@ -8,15 +8,36 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type Repository struct{
+type repository struct{
 	db *database.Database
 }
 
-func NewRepository(db *database.Database) *Repository{
-	return &Repository{db: db}
+func NewRepository(db *database.Database) Repository{
+	return &repository{db: db}
 }
 
-func (r *Repository) FindByUserAndSeller(ctx context.Context,userID string, sellerID string)(*Conversation,error){
+func(r *repository)FindByID(ctx context.Context,conversationID string)(*Conversation,error){
+	query:=`
+		SELECT
+			id,
+			user_id,
+			seller_id,
+			created_at,
+			updated_at
+		FROM conversations
+		WHERE id=$1
+	`
+
+	var conversation Conversation
+	err:=r.db.Pool.QueryRow(ctx,query,conversationID).Scan(&conversation.ID,&conversation.UserID,&conversation.SellerID,&conversation.CreatedAt,&conversation.UpdatedAt)
+
+	if err!=nil{
+		return nil,err
+	}
+	return &conversation,nil
+}
+
+func (r *repository) FindByUserAndSeller(ctx context.Context,userID string, sellerID string)(*Conversation,error){
 	query:=`
 		SELECT
 			id,
@@ -38,7 +59,7 @@ func (r *Repository) FindByUserAndSeller(ctx context.Context,userID string, sell
 
 }
 
-func(r *Repository) CreateOrGet(ctx context.Context,userID string,sellerID string,)(*Conversation, error){
+func(r *repository) CreateOrGet(ctx context.Context,userID string,sellerID string,)(*Conversation, error){
 	query:=`
 	INSERT INTO conversations(
 		user_id,
@@ -72,7 +93,7 @@ func(r *Repository) CreateOrGet(ctx context.Context,userID string,sellerID strin
 	return &conversation,nil
 }
 
-func (r *Repository) CreateMessage(ctx context.Context, conversationID string, role string, content string,)(*Message, error){
+func (r *repository) CreateMessage(ctx context.Context, conversationID string, role string, content string,)(*Message, error){
 	query:=`
 		INSERT INTO messages(
 			conversation_id,
@@ -85,7 +106,7 @@ func (r *Repository) CreateMessage(ctx context.Context, conversationID string, r
 			conversation_id,
 			role,
 			content,
-			created_at
+			created_at;
 		`
 	var message Message
 	err:=r.db.Pool.QueryRow(ctx,query,conversationID,role,content).Scan(&message.ID,&message.ConversationID,&message.Role,&message.Content,&message.CreatedAt)
@@ -95,7 +116,7 @@ func (r *Repository) CreateMessage(ctx context.Context, conversationID string, r
 	return &message,nil
 }
 
-func(r *Repository) GetMessages(ctx context.Context,conversationID string,)([]Message,error){
+func(r *repository) GetMessages(ctx context.Context,conversationID string,)([]Message,error){
 	query:=`
 		SELECT
 			id,
@@ -137,7 +158,7 @@ func(r *Repository) GetMessages(ctx context.Context,conversationID string,)([]Me
 	return messages,nil
 }
 
-func(r *Repository) BelongsToUser(ctx context.Context, conversationID string, userID string)(bool,error){
+func(r *repository) BelongsToUser(ctx context.Context, conversationID string, userID string)(bool,error){
 	query:=`
 		SELECT EXISTS(
 			SELECT 1
@@ -154,4 +175,21 @@ func(r *Repository) BelongsToUser(ctx context.Context, conversationID string, us
 		return false, err
 	}
 	return exists,nil
+}
+
+
+func(r *repository) AddProduct(ctx context.Context, conversationID string, productID string) error{
+	query:=`
+		INSERT INTO conversation_products(conversation_id,product_id)
+		VALUES ($1,$2)
+		ON CONFLICT(
+			conversation_id,
+			product_id
+		)
+		DO NOTHING
+	`
+	_,err:=r.db.Pool.Exec(
+		ctx,query,conversationID,productID,
+	)
+	return err
 }

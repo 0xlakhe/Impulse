@@ -15,7 +15,7 @@ type App struct{
 
 func New(cfg *config.Config, db *database.Database) *App{
 	return &App{
-		Config: cfg,
+		Config: cfg, 
 		DB: db,
 	}
 }
