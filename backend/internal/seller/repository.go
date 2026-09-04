@@ -6,15 +6,19 @@ import (
 	"github.com/0xlakhe/Impluse/internal/database"
 )
 
-type Repository struct{
+type Repository interface{
+	FindByID(ctx context.Context,sellerID string)(*Seller,error)
+}
+
+type repository struct{
 	db *database.Database
 }
 
-func NewRepository(db *database.Database) *Repository{
-	return &Repository{db: db}
+func NewRepository(db *database.Database) *repository{
+	return &repository{db: db}
 }
 
-func (r *Repository) FindByID(ctx context.Context,sellerID string)(*Seller,error){
+func (r *repository) FindByID(ctx context.Context,sellerID string)(*Seller,error){
 	query:=`
 		SELECT
 			id,

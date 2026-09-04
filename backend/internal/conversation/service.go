@@ -80,57 +80,79 @@ func (s *Service) CreateOrGet(ctx context.Context, userID string, sellerID strin
 	return conversation,nil
 }
 
-func(s *Service) SendMessage(ctx context.Context, conversationID string, userID string, content string) ([]Message, error){
-	
-	exists,err:=s.repository.BelongsToUser(
-		ctx,conversationID,userID,
-	)
-	content=strings.TrimSpace(content)
+func(s *Service) SendMessage(ctx context.Context,  userID string,conversationID string, req SendMessageRequest) ([]Message, error){
+	//validate message
+	content:=strings.TrimSpace(req.Content)
 	if content==""{
 		return nil,ErrEmptyMessage
 	}
 
+	//make sure conversation belongs to user
+	belongs,err:=s.repository.BelongsToUser(ctx,conversationID,userID)
 	if err!=nil{
 		return nil,err
 	}
-	if !exists{
+	if !belongs{
 		return nil, ErrConversationNotFound
 	}
 
-	_,err=s.repository.CreateMessage(ctx,conversationID,"user",content)
-
-	if err!=nil{
-		return nil,err
-	}
-	//conversation history
-	history,err:=s.repository.GetMessages(ctx,conversationID)
-	if err!=nil{
-		return nil,err
-	}
-	//conversation's seller
+	// get conversation
 	conversation,err:=s.repository.FindByID(
 		ctx,conversationID,
 	)
 	if err!=nil{
 		return nil,err
 	}
+
+	//get seller
 	seller,err:=s.sellerRepository.FindByID(ctx,conversation.SellerID)
 	if err!=nil{
 		return nil,err
 	}
-	//convert message to ai message
 
-	aiHistory:=make([]ai.Message,0,len(history))
+	//get product if one was supplied
+	var currentProduct *product.Product
 
-	for _,message:=range history{
-		aiHistory=append(aiHistory, ai.Message{Role: message.Role,Content: message.Content})
+	if req.ProductID!=nil{
+		currentProduct,err:=s.productRepository.FindByID(ctx,*req.ProductID)
+		
+		if err!=nil{
+			return nil,ErrProductNotFound
+		}
+		if currentProduct.SellerID!=seller.ID{
+			return nil, ErrProductNotOwnedBySeller
+		}
 	}
 
-	response,err:=s.ai.GenerateResponse(ctx,*seller,aiHistory)
+	//save user's message
+	_,err=s.repository.CreateMessage(
+		ctx,conversationID,string(ai.RoleUser),content,
+	)
 	if err!=nil{
 		return nil,err
 	}
-	_,err=s.repository.CreateMessage(ctx,conversationID,"assistant",response)
+
+	//get conversation history
+	messages,err:=s.repository.GetMessages(ctx,conversationID)
+	if err!=nil{
+		return nil,err
+	}
+	
+	//convert database message to ai message
+	history:=make([]ai.Message,0,len(messages))
+
+	for _,message:=range messages{
+		history=append(history, ai.Message{Role: message.Role,Content:message.Content},)
+	}
+
+	//ask ai for response
+	response,err:=s.ai.GenerateResponse(ctx,*seller,currentProduct,history)
+	if err!=nil{
+		return nil,err
+	}
+
+	//save message
+	_,err=s.repository.CreateMessage(ctx,conversationID,string(ai.RoleAssistant),response)
 	
 	if err!=nil{
 		return nil,err

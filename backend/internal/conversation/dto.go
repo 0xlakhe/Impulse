@@ -12,6 +12,7 @@ type CreateConversationResponse struct{
 
 type SendMessageRequest struct{
 	Content string `json:"content"`
+	ProductID *string `json:"product_id,omitempty"`
 }
 
 type MessageResponse struct{

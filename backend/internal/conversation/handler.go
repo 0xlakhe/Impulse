@@ -62,7 +62,7 @@ func (h *Handler) SendMessage(w http.ResponseWriter,r *http.Request){
 		httpx.Error(w,http.StatusBadRequest,err.Error())
 		return
 	}
-	message,err:=h.service.SendMessage(r.Context(),conversationID,userID,req.Content)
+	message,err:=h.service.SendMessage(r.Context(),userID,conversationID,req)
 	if err!=nil{
 		switch{
 		case errors.Is(err,ErrConversationNotFound):
