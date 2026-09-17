@@ -80,7 +80,7 @@ func (s *Service) CreateOrGet(ctx context.Context, userID string, sellerID strin
 	return conversation,nil
 }
 
-func(s *Service) SendMessage(ctx context.Context,  userID string,conversationID string, req SendMessageRequest) ([]Message, error){
+func(s *Service) SendMessage(ctx context.Context, userID string,conversationID string, req SendMessageRequest) (*string, error){
 	//validate message
 	content:=strings.TrimSpace(req.Content)
 	if content==""{
@@ -114,7 +114,8 @@ func(s *Service) SendMessage(ctx context.Context,  userID string,conversationID 
 	var currentProduct *product.Product
 
 	if req.ProductID!=nil{
-		currentProduct,err:=s.productRepository.FindByID(ctx,*req.ProductID)
+
+		currentProduct,err=s.productRepository.FindByID(ctx,*req.ProductID)
 		
 		if err!=nil{
 			return nil,ErrProductNotFound
@@ -139,8 +140,8 @@ func(s *Service) SendMessage(ctx context.Context,  userID string,conversationID 
 	}
 	
 	//convert database message to ai message
-	history:=make([]ai.Message,0,len(messages))
-
+	history:=make([]ai.Message,0,len(messages)+1)
+	history=append(history, ai.Message{Role: "system",Content: seller.SystemPrompt})
 	for _,message:=range messages{
 		history=append(history, ai.Message{Role: message.Role,Content:message.Content},)
 	}
@@ -152,12 +153,13 @@ func(s *Service) SendMessage(ctx context.Context,  userID string,conversationID 
 	}
 
 	//save message
-	_,err=s.repository.CreateMessage(ctx,conversationID,string(ai.RoleAssistant),response)
+	_,err=s.repository.CreateMessage(ctx,conversationID,string(ai.RoleAssistant),*response)
 	
 	if err!=nil{
 		return nil,err
 	}
-	return s.repository.GetMessages(ctx,conversationID)
+	// return s.repository.GetMessages(ctx,conversationID)
+	return response,nil
 }
 
 func (s *Service) GetMessags(ctx context.Context,conversationID string, userID string,)([]Message, error){

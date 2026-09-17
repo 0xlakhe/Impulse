@@ -13,11 +13,14 @@ import (
 )
 
 func main(){		
-	_=godotenv.Load()	
+	if err:=godotenv.Overload();err!=nil{
+		log.Print("warning: no .env found")
+	}
 	cfg:=config.Load()
 	ctx:=context.Background()
-	dbPool,err:=database.NewPostgresPool(ctx,cfg.DatabaseURL)
 
+
+	dbPool,err:=database.NewPostgresPool(ctx,cfg.DatabaseURL)
 	if err!=nil{
 		log.Fatal(err)
 	}

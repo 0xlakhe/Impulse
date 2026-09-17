@@ -12,11 +12,12 @@ type Role string
 const (
 	RoleUser Role="user"
 	RoleAssistant Role="assistant"
+	RoleSystem Role="system"
 )
 
 type Message struct{
-	Role string
-	Content string
+	Role string `json:"role"`
+	Content string `json:"content"`
 }
 
 type Product struct{
@@ -33,6 +34,6 @@ type Provider interface{
 		seller seller.Seller,
 		product *product.Product,
 		history []Message,
-	)(string,error)
+	)(*string,error)
 }
 

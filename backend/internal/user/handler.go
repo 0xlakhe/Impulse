@@ -37,6 +37,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request){
 			http.Error(w,err.Error(), http.StatusInternalServerError)
 			return
 		}
+		}
+		httpx.JSON(w,http.StatusCreated,response)
 	}
-	httpx.JSON(w,http.StatusCreated,response)
-}
