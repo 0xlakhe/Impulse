@@ -8,35 +8,35 @@ import (
 	"github.com/0xlakhe/Impluse/internal/httpx"
 )
 
-type Handler struct{
+type Handler struct {
 	service *Service
 }
 
-func NewHandler(service *Service) *Handler{
+func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request){
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
-	if err:=json.NewDecoder(r.Body).Decode(&req); err!=nil{
-		httpx.Error(w,http.StatusBadRequest,err.Error())
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httpx.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	response,err:=h.service.Register(r.Context(),req)
-	
-	if err!=nil{
-		switch{
+	response, err := h.service.Register(r.Context(), req)
+
+	if err != nil {
+		switch {
 		case errors.Is(err, ErrEmailAlreadyExists):
-			http.Error(w,err.Error(),http.StatusConflict)
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
-		
-		case errors.Is(err,ErrUserNameTaken):
-			http.Error(w,err.Error(),http.StatusConflict)
+
+		case errors.Is(err, ErrUserNameTaken):
+			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		default:
-			http.Error(w,err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		}
-		httpx.JSON(w,http.StatusCreated,response)
 	}
+	httpx.JSON(w, http.StatusCreated, response)
+}

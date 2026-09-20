@@ -6,20 +6,20 @@ import (
 	"github.com/0xlakhe/Impluse/internal/database"
 )
 
-type Repository interface{
-	FindByID(ctx context.Context,sellerID string)(*Seller,error)
+type Repository interface {
+	FindByID(ctx context.Context, sellerID string) (*Seller, error)
 }
 
-type repository struct{
+type repository struct {
 	db *database.Database
 }
 
-func NewRepository(db *database.Database) *repository{
+func NewRepository(db *database.Database) *repository {
 	return &repository{db: db}
 }
 
-func (r *repository) FindByID(ctx context.Context,sellerID string)(*Seller,error){
-	query:=`
+func (r *repository) FindByID(ctx context.Context, sellerID string) (*Seller, error) {
+	query := `
 		SELECT
 			id,
 			name,
@@ -31,11 +31,11 @@ func (r *repository) FindByID(ctx context.Context,sellerID string)(*Seller,error
 	`
 	var seller Seller
 
-	err:=r.db.Pool.QueryRow(ctx,query,sellerID).Scan(&seller.ID,&seller.Name,&seller.Persona,&seller.SystemPrompt,&seller.AvatarURL)
-	
-	if err!=nil{
-		return nil,err
+	err := r.db.Pool.QueryRow(ctx, query, sellerID).Scan(&seller.ID, &seller.Name, &seller.Persona, &seller.SystemPrompt, &seller.AvatarURL)
+
+	if err != nil {
+		return nil, err
 	}
-	
-	return &seller,nil
+
+	return &seller, nil
 }

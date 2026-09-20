@@ -2,12 +2,12 @@ package conversation
 
 func toMessageResponse(
 	message Message,
-)MessageResponse{
+) MessageResponse {
 	return MessageResponse{
-		ID: message.ID,
+		ID:             message.ID,
 		ConversationID: message.ConversationID,
-		Role: message.Role,
-		Content: message.Content,
-		CreatedAt: message.CreatedAt,
+		Role:           message.Role,
+		Content:        message.Content,
+		CreatedAt:      message.CreatedAt,
 	}
 }

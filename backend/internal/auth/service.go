@@ -7,32 +7,32 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Service struct{
+type Service struct {
 	users *user.Repository
-	jwt *JWTManager
+	jwt   *JWTManager
 }
 
-func NewService(users *user.Repository,jwt *JWTManager) *Service{
-	return &Service{users: users,jwt: jwt}
+func NewService(users *user.Repository, jwt *JWTManager) *Service {
+	return &Service{users: users, jwt: jwt}
 }
 
-func (s *Service) Login(ctx context.Context, req LoginRequest)(*LoginResponse,error){
-	u,err:=s.users.FindByEmail(ctx,req.Email)
-	if err!=nil{
+func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+	u, err := s.users.FindByEmail(ctx, req.Email)
+	if err != nil {
 		return nil, user.ErrInvalidCredentials
 	}
 
-	err=bcrypt.CompareHashAndPassword(
+	err = bcrypt.CompareHashAndPassword(
 		[]byte(u.PasswordHash),
 		[]byte(req.Password),
 	)
-	if err!=nil{
+	if err != nil {
 		return nil, user.ErrInvalidCredentials
 	}
 
-	token,err:=s.jwt.Generate(u.ID)
-	if err!=nil{
+	token, err := s.jwt.Generate(u.ID)
+	if err != nil {
 		return nil, err
 	}
-	return &LoginResponse{Token: token},nil
+	return &LoginResponse{Token: token}, nil
 }

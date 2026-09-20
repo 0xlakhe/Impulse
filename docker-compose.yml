@@ -11,7 +11,7 @@ services:
 
     ports:
       - "5433:5432"
-    
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -20,6 +20,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.17.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/migrations:/migrations:ro
+    command:
+      - -path=/migrations
+      - -database=postgres://impulse:impulse@postgres:5432/impulse?sslmode=disable
+      - up
 
 volumes:
   postgres_data:

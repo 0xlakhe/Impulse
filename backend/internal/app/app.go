@@ -7,20 +7,19 @@ import (
 	"github.com/0xlakhe/Impluse/internal/database"
 )
 
-
-type App struct{
+type App struct {
 	Config *config.Config
-	DB *database.Database
+	DB     *database.Database
 }
 
-func New(cfg *config.Config, db *database.Database) *App{
+func New(cfg *config.Config, db *database.Database) *App {
 	return &App{
-		Config: cfg, 
-		DB: db,
+		Config: cfg,
+		DB:     db,
 	}
 }
 
-func (a *App) Shutdown(ctx context.Context) error{
+func (a *App) Shutdown(ctx context.Context) error {
 	a.DB.Pool.Close()
 	return nil
 }

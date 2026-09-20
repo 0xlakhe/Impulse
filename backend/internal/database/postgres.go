@@ -6,21 +6,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-
 func NewPostgresPool(
 	ctx context.Context,
 	databaseURL string,
-)(*pgxpool.Pool,error){
-	if databaseURL==""{
+) (*pgxpool.Pool, error) {
+	if databaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is not set")
 	}
-	pool,err:=pgxpool.New(ctx,databaseURL)
-	if err!=nil{
-		return nil, fmt.Errorf("failed to create database pool: %w",err)
+	pool, err := pgxpool.New(ctx, databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
-	if err:=pool.Ping(ctx);err!=nil{
+	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		return	nil,fmt.Errorf("failed to connect to database: %w",err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	return pool,nil
+	return pool, nil
 }

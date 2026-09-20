@@ -6,16 +6,16 @@ import (
 	"github.com/0xlakhe/Impluse/internal/database"
 )
 
-type Repository struct{
+type Repository struct {
 	db *database.Database
 }
 
-func NewRepository (db *database.Database) *Repository{
+func NewRepository(db *database.Database) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List(ctx context.Context,)([]ProductResponse,error){
-	query:=`
+func (r *Repository) List(ctx context.Context) ([]ProductResponse, error) {
+	query := `
 		SELECT
  		   	p.id,
 		    p.name,
@@ -30,17 +30,17 @@ func (r *Repository) List(ctx context.Context,)([]ProductResponse,error){
 		WHERE p.is_active = TRUE
 		ORDER BY p.created_at DESC;
 		`
-	
-	rows,err:=r.db.Pool.Query(ctx,query)
 
-	if err!=nil{
-		return nil,err
+	rows, err := r.db.Pool.Query(ctx, query)
+
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 	var products []ProductResponse
-	for rows.Next(){
+	for rows.Next() {
 		var p ProductResponse
-		err:=rows.Scan(
+		err := rows.Scan(
 			&p.ID,
 			&p.Name,
 			&p.Description,
@@ -49,16 +49,16 @@ func (r *Repository) List(ctx context.Context,)([]ProductResponse,error){
 			&p.Category,
 			&p.SellerName,
 		)
-		if err!=nil{
-			return nil,err
+		if err != nil {
+			return nil, err
 		}
-		products=append(products, p)
+		products = append(products, p)
 	}
-	return products,nil
+	return products, nil
 }
 
-func (r *Repository) FindByID(ctx context.Context,productID string)(*Product,error){
-	query:=`
+func (r *Repository) FindByID(ctx context.Context, productID string) (*Product, error) {
+	query := `
 		SELECT
 			id,
 			seller_id,
@@ -72,10 +72,10 @@ func (r *Repository) FindByID(ctx context.Context,productID string)(*Product,err
 			updated_at
 		FROM products
 		WHERE id=$1
-	`	
+	`
 	var product Product
 
-	err:=r.db.Pool.QueryRow(ctx,query,productID).Scan(
+	err := r.db.Pool.QueryRow(ctx, query, productID).Scan(
 		&product.ID,
 		&product.SellerID,
 		&product.Name,
@@ -87,8 +87,8 @@ func (r *Repository) FindByID(ctx context.Context,productID string)(*Product,err
 		&product.CreatedAt,
 		&product.UpdatedAt,
 	)
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	return &product,nil
+	return &product, nil
 }
