@@ -1,6 +1,11 @@
 package database
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Database struct {
 	Pool *pgxpool.Pool
@@ -8,4 +13,8 @@ type Database struct {
 
 func New(pool *pgxpool.Pool) *Database {
 	return &Database{Pool: pool}
+}
+
+func IsNotFound(err error) bool{
+	return errors.Is(err,pgx.ErrNoRows)
 }

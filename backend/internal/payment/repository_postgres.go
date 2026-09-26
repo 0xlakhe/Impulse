@@ -58,5 +58,34 @@ func (r *postgresRepository) UpdateStatus(ctx context.Context, paymentID string,
 }
 
 func (r *postgresRepository) FindByIdempotencyKey(ctx context.Context, idempotencyKey string) (*Payment, error) {
-	return nil, nil
+	query := `
+		SELECT
+			id,
+			order_id,
+			amount,
+			status,
+			provider_ref,
+			idempotency_key,
+			created_at,
+			updated_at
+		FROM payments
+		WHERE idempotency_key = $1
+	`
+	var p Payment
+	err := r.db.Pool.QueryRow(ctx, query, idempotencyKey).Scan(
+		&p.ID,
+		&p.OrderID,
+		&p.Amount,
+		&p.Status,
+		&p.ProviderRef,
+		&p.IdempotencyKey,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
 }
