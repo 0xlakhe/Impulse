@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/0xlakhe/Impluse/internal/payment"
 	"github.com/0xlakhe/Impluse/internal/product"
 	"github.com/google/uuid"
 )
@@ -13,20 +14,21 @@ type ProductRepository interface {
 	FindByID(ctx context.Context, productID string) (*product.Product, error)
 }
 
-type Repository interface {
-	Create(ctx context.Context, order *Order, items []OrderItem) error
+type PaymentProcessor interface{
+	Charge(ctx context.Context, orderID string, amount float64, idempotencyKey string)(*payment.Payment,error)
 }
 
 type Service struct {
 	repository        Repository
 	productRepository ProductRepository
+	paymentProcessor PaymentProcessor
 }
 
-func NewService(repository Repository, productRepository ProductRepository) *Service {
-	return &Service{repository: repository, productRepository: productRepository}
+func NewService(repository Repository, productRepository ProductRepository, paymentProcessor PaymentProcessor) *Service {
+	return &Service{repository: repository, productRepository: productRepository, paymentProcessor: paymentProcessor}
 }
 
-func (s *Service) Create(ctx context.Context, userID string, req CreateOrderRequest) (*Order, error) {
+func (s *Service) Create(ctx context.Context, userID string, req CreateOrderRequest, idempotencyKey string) (*Order, error) {
 	if len(req.Items) == 0 {
 		return nil, ErrEmptyOrders
 	}
@@ -75,5 +77,31 @@ func (s *Service) Create(ctx context.Context, userID string, req CreateOrderRequ
 	if err != nil {
 		return nil, err
 	}
+
+	paymentResult,err:=s.paymentProcessor.Charge(ctx,order.ID,order.TotalAmount,idempotencyKey)
+
+	if err!=nil{
+		_=s.repository.UpdateStatus(ctx, order.ID,StatusFailed)
+
+		order.Status=StatusFailed
+
+		return order,err
+	}
+
+	switch paymentResult.Status{
+	case payment.StatusSuccess:
+		err=s.repository.UpdateStatus(ctx,order.ID,StatusPaid)
+		if err!=nil{
+			return order,err
+		}
+		order.Status=StatusPaid
+	case payment.StatusFailed:
+		_=s.repository.UpdateStatus(ctx,order.ID,StatusFailed)
+		order.Status=StatusFailed
+		return order,payment.ErrPaymentFailed
+	default:
+		order.Status=StatusPending
+	}
+
 	return order, nil
 }

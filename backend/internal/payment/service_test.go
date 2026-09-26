@@ -2,10 +2,10 @@ package payment
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type fakeRepository struct {
@@ -73,7 +73,7 @@ func (f *fakeProvider) Charge(ctx context.Context, amount float64) (string, erro
 
 func TestService_Charge_Success(t *testing.T) {
 	repository := &fakeRepository{
-		findErr: errors.New("not found"),
+		findErr: pgx.ErrNoRows,
 	}
 
 	provider := &fakeProvider{
